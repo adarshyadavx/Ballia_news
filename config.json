@@ -1,0 +1,203 @@
+{
+  "site": {
+    "name": "बलिया न्यूज़",
+    "nameEnglish": "Ballia News",
+    "tagline": "बलिया की हर खबर, सबसे पहले",
+    "url": "https://www.yourdomain.com",
+    "language": "hi",
+    "logo": "/logo.svg",
+    "themeColor": "#D32F2F",
+    "darkMode": true
+  },
+  "contact": {
+    "email": "news@yourdomain.com",
+    "phone": "+91XXXXXXXXXX",
+    "whatsapp": "+91XXXXXXXXXX",
+    "address": "बलिया, उत्तर प्रदेश"
+  },
+  "social": {
+    "facebook": "",
+    "youtube": "",
+    "whatsappChannel": "",
+    "x": "",
+    "instagram": ""
+  },
+  "categories": [
+    {
+      "name": "बलिया शहर",
+      "slug": "ballia-city",
+      "showOnHome": true
+    },
+    {
+      "name": "तहसील / क्षेत्र",
+      "slug": "tehsil",
+      "showOnHome": true
+    },
+    {
+      "name": "अपराध",
+      "slug": "crime",
+      "showOnHome": true
+    },
+    {
+      "name": "राजनीति",
+      "slug": "politics",
+      "showOnHome": true
+    },
+    {
+      "name": "शिक्षा",
+      "slug": "education",
+      "showOnHome": true
+    },
+    {
+      "name": "खेल",
+      "slug": "sports",
+      "showOnHome": false
+    },
+    {
+      "name": "कृषि",
+      "slug": "agriculture",
+      "showOnHome": false
+    },
+    {
+      "name": "धर्म-संस्कृति",
+      "slug": "culture",
+      "showOnHome": false
+    },
+    {
+      "name": "नौकरी",
+      "slug": "jobs",
+      "showOnHome": false
+    },
+    {
+      "name": "उत्तर प्रदेश",
+      "slug": "uttar-pradesh",
+      "showOnHome": false
+    }
+  ],
+  "areas": [
+    "बलिया सदर",
+    "बांसडीह",
+    "रसड़ा",
+    "बेल्थरा रोड",
+    "सिकंदरपुर",
+    "बैरिया"
+  ],
+  "homepage": {
+    "latestNewsCount": 10,
+    "mostReadDays": 7,
+    "showVideoBlock": true
+  },
+  "features": {
+    "breakingStrip": true,
+    "search": true,
+    "contactForm": true,
+    "viewCounter": true,
+    "stickyWhatsappShare": true,
+    "sampleData": true
+  },
+  "analytics": {
+    "googleAnalyticsId": "",
+    "clarityId": ""
+  },
+  "ads": {
+    "enabled": true,
+    "label": "प्रायोजित",
+    "loadAfterContent": true,
+    "excludedPages": [
+      "/about",
+      "/contact",
+      "/privacy",
+      "/admin"
+    ],
+    "nativeBanner": {
+      "enabled": true,
+      "key": "ADSTERRA_NATIVE_KEY",
+      "homeEvery": 5,
+      "categoryEvery": 6,
+      "articleAfterParagraph": 3,
+      "maxPerPage": 2
+    },
+    "displayBanner": {
+      "enabled": true,
+      "desktopSidebar": {
+        "key": "ADSTERRA_300x250_KEY",
+        "sticky": true
+      },
+      "desktopFooter": {
+        "key": "ADSTERRA_728x90_KEY"
+      },
+      "mobileArticleEnd": {
+        "key": "ADSTERRA_300x250_KEY"
+      },
+      "mobileFooter": {
+        "key": "ADSTERRA_320x100_KEY"
+      }
+    },
+    "socialBar": {
+      "enabled": true,
+      "key": "ADSTERRA_SOCIALBAR_KEY",
+      "delaySeconds": 10,
+      "orShowAfterScrollPercent": 50
+    },
+    "popunder": {
+      "enabled": false,
+      "key": "ADSTERRA_POPUNDER_KEY",
+      "pages": [
+        "newsDetail"
+      ],
+      "maxPerDay": 1,
+      "skipFirstPageView": true
+    },
+    "smartlink": {
+      "enabled": false,
+      "url": "https://ADSTERRA_SMARTLINK_URL",
+      "text": "Sponsored",
+      "showInFooter": true,
+      "showOn404": true
+    }
+  },
+  "autoNews": {
+    "enabled": true,
+    "autoPublish": false,
+    "runEveryHours": 3,
+    "activeHoursIST": {
+      "from": 6,
+      "to": 22
+    },
+    "maxStoriesPerRun": 6,
+    "maxStoriesPerDay": 30,
+    "maxAgeHours": 24,
+    "relevanceMinScore": 70,
+    "confidenceMinScore": 75,
+    "wordCount": {
+      "min": 80,
+      "max": 150
+    },
+    "keywords": [
+      "बलिया",
+      "Ballia",
+      "रसड़ा",
+      "बांसडीह",
+      "बेल्थरा रोड",
+      "सिकंदरपुर",
+      "बैरिया"
+    ],
+    "models": {
+      "filter": "claude-haiku-5-5",
+      "write": "claude-sonnet-5-5",
+      "check": "claude-haiku-5-5"
+    },
+    "images": {
+      "useLibrary": true,
+      "usePexels": true,
+      "allowAiImages": false,
+      "caption": "सांकेतिक तस्वीर"
+    },
+    "autoBreaking": false,
+    "deleteHeldAfterDays": 7,
+    "alerts": {
+      "telegram": true,
+      "email": false
+    }
+  }
+}

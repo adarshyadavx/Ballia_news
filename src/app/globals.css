@@ -1,0 +1,201 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), var(--font-noto-devanagari), system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2 0.012 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.012 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.012 265);
+  --primary: oklch(0.54 0.2 27);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.972 0.003 265);
+  --secondary-foreground: oklch(0.25 0.012 265);
+  --muted: oklch(0.972 0.003 265);
+  --muted-foreground: oklch(0.5 0.012 265);
+  --accent: oklch(0.96 0.004 265);
+  --accent-foreground: oklch(0.25 0.012 265);
+  --destructive: oklch(0.55 0.22 27);
+  --border: oklch(0.925 0.004 265);
+  --input: oklch(0.9 0.005 265);
+  --ring: oklch(0.54 0.2 27 / 45%);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.2 0.012 265);
+  --sidebar-primary: oklch(0.54 0.2 27);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.96 0.004 265);
+  --sidebar-accent-foreground: oklch(0.25 0.012 265);
+  --sidebar-border: oklch(0.925 0.004 265);
+  --sidebar-ring: oklch(0.54 0.2 27 / 45%);
+  --shadow-soft: 0 1px 2px oklch(0.2 0.02 265 / 5%), 0 8px 24px -8px oklch(0.2 0.02 265 / 10%);
+  color-scheme: light;
+}
+
+.dark {
+  --background: oklch(0.165 0.006 265);
+  --foreground: oklch(0.955 0.004 265);
+  --card: oklch(0.2 0.007 265);
+  --card-foreground: oklch(0.955 0.004 265);
+  --popover: oklch(0.2 0.007 265);
+  --popover-foreground: oklch(0.955 0.004 265);
+  --primary: oklch(0.66 0.19 27);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.24 0.008 265);
+  --secondary-foreground: oklch(0.955 0.004 265);
+  --muted: oklch(0.22 0.007 265);
+  --muted-foreground: oklch(0.72 0.01 265);
+  --accent: oklch(0.26 0.008 265);
+  --accent-foreground: oklch(0.955 0.004 265);
+  --destructive: oklch(0.7 0.19 22);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.66 0.19 27 / 50%);
+  --sidebar: oklch(0.2 0.007 265);
+  --sidebar-foreground: oklch(0.955 0.004 265);
+  --sidebar-primary: oklch(0.66 0.19 27);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.26 0.008 265);
+  --sidebar-accent-foreground: oklch(0.955 0.004 265);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.66 0.19 27 / 50%);
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 30%), 0 8px 24px -8px oklch(0 0 0 / 40%);
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+/* Hindi reading comfort */
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-size: 16px;
+  line-height: 1.7;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: color-mix(in oklch, var(--primary) 22%, transparent); }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+/* Smooth theme switch (only while toggling) */
+html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+  transition: background-color .25s ease, border-color .25s ease, color .25s ease, fill .25s ease !important;
+}
+
+/* Breaking news ticker */
+.marquee { display: inline-flex; white-space: nowrap; animation: marquee 50s linear infinite; }
+.marquee-wrap:hover .marquee { animation-play-state: paused; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none; } html { scroll-behavior: auto; } }
+
+/* Page entrance */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .5s cubic-bezier(.2, .7, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .rise { animation: none; } }
+
+/* Hide scrollbar on horizontal nav */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Article text */
+.article { color: color-mix(in oklch, var(--foreground) 92%, var(--background)); }
+.article h2 { font-size: 1.5rem; line-height: 1.4; font-weight: 700; margin: 1.8em 0 .5em; letter-spacing: -.01em; }
+.article h3 { font-size: 1.2rem; line-height: 1.45; font-weight: 700; margin: 1.5em 0 .4em; }
+.article p { margin: 0 0 1.15em; }
+.article ul { list-style: disc; padding-left: 1.4em; margin: 0 0 1.15em; }
+.article ol { list-style: decimal; padding-left: 1.4em; margin: 0 0 1.15em; }
+.article li { margin-bottom: .35em; }
+.article blockquote { border-left: 3px solid var(--primary); padding: .1em 1.1em; margin: 1.5em 0; color: var(--muted-foreground); font-size: 1.05em; }
+.article img { max-width: 100%; height: auto; margin: 1.5em auto; border-radius: var(--radius); }
+.article a { color: var(--primary); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* Page container */
+.shell { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1rem; }
+@media (min-width: 640px) { .shell { padding-inline: 1.5rem; } }
+@media (min-width: 1024px) { .shell { padding-inline: 2rem; } }
+.shell-narrow { max-width: 56rem; }
+.shell-read { max-width: 46rem; }
+
+/* ---------- Android-style mobile shell ---------- */
+@keyframes bar-elev { from { box-shadow: 0 0 0 transparent; } to { box-shadow: 0 2px 14px oklch(0 0 0 / 10%); } }
+@supports (animation-timeline: scroll()) {
+  .app-bar { animation: bar-elev linear both; animation-timeline: scroll(root); animation-range: 0 90px; }
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes snack-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.sheet { animation: sheet-up .32s cubic-bezier(.2, .8, .2, 1) both; }
+.scrim { animation: fade-in .25s ease both; }
+.snack { animation: snack-in .25s ease both; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .sheet, .scrim, .snack { animation: none; } }
+
+@media (max-width: 767px) {
+  html, body { overscroll-behavior-y: contain; }
+  body { -webkit-tap-highlight-color: transparent; font-size: 16px; }
+  a, button { touch-action: manipulation; }
+  article a:active, article button:active { opacity: .85; }
+}
+.safe-b { padding-bottom: env(safe-area-inset-bottom); }
