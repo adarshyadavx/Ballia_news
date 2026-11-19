@@ -166,6 +166,8 @@
     },
     "maxStoriesPerRun": 6,
     "maxStoriesPerDay": 30,
+    "maxChecksPerRun": 40,
+    "runBudgetMinutes": 11,
     "maxAgeHours": 24,
     "relevanceMinScore": 70,
     "confidenceMinScore": 75,

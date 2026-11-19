@@ -8,10 +8,13 @@ async function main() {
 
   // 1. Breaking off after 24 hours.
   await supabase.from("news").update({ is_breaking: false }).eq("is_breaking", true).lt("breaking_set_at", new Date(Date.now() - day).toISOString());
-  // 2. Delete held stories older than N days.
-  await supabase.from("news").delete().eq("is_auto", true).eq("review_status", "held").lt("created_at", new Date(Date.now() - cfg.deleteHeldAfterDays * day).toISOString());
+  // 2. Delete held stories older than N days. Only unpublished drafts: a held story that was
+  //    published by hand must never be removed.
+  await supabase.from("news").delete().eq("is_auto", true).eq("review_status", "held").eq("status", "draft").lt("created_at", new Date(Date.now() - cfg.deleteHeldAfterDays * day).toISOString());
   // 3. Forget seen items older than 30 days.
   await supabase.from("seen_items").delete().lt("seen_at", new Date(Date.now() - 30 * day).toISOString());
+  // 3b. View-counter limits only need today's rows (table from 0004_hardening.sql).
+  await supabase.from("view_hits").delete().lt("day", new Date(Date.now() - day).toISOString().slice(0, 10));
   // 4. Daily summary.
   const since = new Date(Date.now() - day).toISOString();
   const { count: pub } = await supabase.from("news").select("id", { count: "exact", head: true }).eq("is_auto", true).eq("status", "published").gte("created_at", since);

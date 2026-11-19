@@ -29,7 +29,7 @@ export default async function AutoNewsPage() {
   const [settings, runs, held, sources, library] = await Promise.all([
     supabase.from("app_settings").select("key,value"),
     supabase.from("pipeline_runs").select("*").order("started_at", { ascending: false }).limit(20),
-    supabase.from("news").select("id,headline,summary,hold_reason,ai_confidence,source_names,source_urls,created_at").eq("is_auto", true).eq("review_status", "held").order("created_at", { ascending: false }).limit(50),
+    supabase.from("news").select("id,headline,summary,hold_reason,ai_confidence,source_names,source_urls,created_at").eq("is_auto", true).eq("review_status", "held").eq("status", "draft").order("created_at", { ascending: false }).limit(50),
     supabase.from("sources").select("*").order("name"),
     supabase.from("image_library").select("*").order("created_at", { ascending: false }).limit(60),
   ]);

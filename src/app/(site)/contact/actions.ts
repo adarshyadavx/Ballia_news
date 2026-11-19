@@ -11,8 +11,17 @@ export async function sendMessage(_: ContactState, form: FormData): Promise<Cont
   if (!name || !message) return { ok: false, error: "कृपया नाम और संदेश भरें।" };
   if (!/^[+\d][\d\s-]{7,17}$/.test(phone)) return { ok: false, error: "कृपया सही फ़ोन नंबर लिखें।" };
 
-  const { error } = await publicClient().from("messages").insert({ name, phone, message });
+  const db = publicClient();
+  // send_message() checks the fields and limits floods (supabase/migrations/0004_hardening.sql).
+  let { error } = await db.rpc("send_message", { p_name: name, p_phone: phone, p_message: message });
+  if (error?.code === "PGRST202") {
+    // 0004 not run yet: fall back to the old direct insert.
+    ({ error } = await db.from("messages").insert({ name, phone, message }));
+  }
   if (error) {
+    if (error.message.includes("too many messages")) {
+      return { ok: false, error: "अभी बहुत सारे संदेश आ चुके हैं। कृपया थोड़ी देर बाद कोशिश करें।" };
+    }
     console.error("[contact]", error.message);
     return { ok: false, error: "संदेश भेजा नहीं जा सका। कृपया बाद में कोशिश करें।" };
   }

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { connection } from "next/server";
 import { config } from "@/lib/config";
@@ -14,6 +15,22 @@ export const publicClient = () =>
   );
 
 const useSample = config.features.sampleData;
+
+// Sample stories are only for a brand-new site. As soon as one real story is published they never
+// show again (not in the breaking strip, videos, search or empty categories), so readers never see
+// invented news next to real news. A database outage also shows nothing rather than fake stories.
+const sampleMode = cache(async (): Promise<boolean> => {
+  if (!useSample) return false;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return true;
+  try {
+    const { count, error } = await publicClient().from("news").select("id", { count: "exact", head: true }).eq("status", "published");
+    if (error) return ["PGRST205", "42P01"].includes(error.code ?? ""); // tables not created yet
+    return !count;
+  } catch (e) {
+    if (String((e as Error)?.message).includes("prerender")) throw e;
+    return false;
+  }
+});
 
 // Stories without a photo get a matching illustration instead of a grey box.
 const dress = (rows: NewsItem[]): NewsItem[] =>
@@ -51,7 +68,7 @@ export async function getCategory(slug: string) {
   );
   if (cats[0]) return cats[0];
   const c = config.categories.find((x) => x.slug === slug);
-  return useSample && c ? { id: c.slug, name: c.name, slug: c.slug } : null;
+  return c && (await sampleMode()) ? { id: c.slug, name: c.name, slug: c.slug } : null;
 }
 
 export async function getLatest(opts: { offset?: number; limit?: number; categorySlug?: string } = {}): Promise<NewsItem[]> {
@@ -64,7 +81,7 @@ export async function getLatest(opts: { offset?: number; limit?: number; categor
     .range(offset, offset + limit - 1);
   if (categorySlug) q = q.eq("category.slug", categorySlug);
   const rows = dress(await safe(q as unknown as PromiseLike<{ data: NewsItem[] | null; error: { message: string } | null }>, [] as NewsItem[]));
-  if (rows.length || !useSample) return rows;
+  if (rows.length || !(await sampleMode())) return rows;
   const pool = categorySlug ? sampleNews.filter((n) => n.category?.slug === categorySlug) : sampleNews;
   return pool.slice(offset, offset + limit);
 }
@@ -87,7 +104,9 @@ export async function getNewsBySlug(slug: string): Promise<NewsItem | null> {
     publicClient().from("news").select(SELECT).eq("slug", slug).eq("status", "published").limit(1),
     [] as NewsItem[],
   );
-  return dress(rows)[0] ?? (useSample ? sampleNewsBySlug(slug) : null);
+  const real = dress(rows)[0];
+  if (real) return real;
+  return (await sampleMode()) ? sampleNewsBySlug(slug) : null;
 }
 
 export async function getRelated(categoryId: string, excludeId: string, limit = 4): Promise<NewsItem[]> {
@@ -110,7 +129,7 @@ export async function getMostRead(days = config.homepage.mostReadDays, limit = 5
       db.from("news").select(SELECT).eq("status", "published").order("view_count", { ascending: false }).limit(limit),
       [] as NewsItem[],
     );
-    return all.length || !useSample ? dress(all) : [...sampleNews].sort((a, b) => b.view_count - a.view_count).slice(0, limit);
+    return all.length || !(await sampleMode()) ? dress(all) : [...sampleNews].sort((a, b) => b.view_count - a.view_count).slice(0, limit);
   }
   const cats = await safe(db.from("categories").select("id,name,slug"), [] as { id: string; name: string; slug: string }[]);
   const map = new Map(cats.map((c) => [c.id, c]));
@@ -119,7 +138,7 @@ export async function getMostRead(days = config.homepage.mostReadDays, limit = 5
 
 export async function getVideoNews(limit = 3): Promise<NewsItem[]> {
   const rows = await getVideoRows(limit);
-  return rows.length || !useSample ? rows : sampleVideos.slice(0, limit);
+  return rows.length || !(await sampleMode()) ? rows : sampleVideos.slice(0, limit);
 }
 
 async function getVideoRows(limit: number): Promise<NewsItem[]> {
@@ -138,7 +157,7 @@ export async function getBreaking(): Promise<{ headline: string; slug: string }[
       .gte("breaking_set_at", cutoff).order("breaking_set_at", { ascending: false }).limit(8),
     [] as { headline: string; slug: string }[],
   );
-  return rows.length || !useSample ? rows : sampleNews.filter((n) => n.is_breaking).map((n) => ({ headline: n.headline, slug: n.slug }));
+  return rows.length || !(await sampleMode()) ? rows : sampleNews.filter((n) => n.is_breaking).map((n) => ({ headline: n.headline, slug: n.slug }));
 }
 
 export async function searchNews(term: string, limit = 30): Promise<NewsItem[]> {
@@ -150,7 +169,7 @@ export async function searchNews(term: string, limit = 30): Promise<NewsItem[]> 
       .order("published_at", { ascending: false }).limit(limit),
     [] as NewsItem[],
   ));
-  if (rows.length || !useSample) return rows;
+  if (rows.length || !(await sampleMode())) return rows;
   const t = q.toLowerCase();
   return sampleNews.filter((n) => [n.headline, n.summary, ...n.tags].some((x) => x.toLowerCase().includes(t))).slice(0, limit);
 }

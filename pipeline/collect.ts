@@ -17,6 +17,12 @@ export async function collect(supabase: SupabaseClient, cfg: AutoCfg): Promise<{
 
   for (const s of sources ?? []) {
     try {
+      if (s.type === "api" && /(^|\.)newsdata\.io$/.test(new URL(s.url).hostname)) {
+        const got = await fetchNewsData(s.url);
+        all.push(...got.filter((i) => i.publishedAt.getTime() >= cutoff));
+        await supabase.from("sources").update({ last_checked_at: new Date().toISOString() }).eq("id", s.id);
+        continue;
+      }
       const feed = await parser.parseURL(s.url);
       for (const e of feed.items ?? []) {
         const when = new Date(e.isoDate || e.pubDate || Date.now());
@@ -56,6 +62,44 @@ export async function collect(supabase: SupabaseClient, cfg: AutoCfg): Promise<{
     else groups.push(it);
   }
   return { items: groups, errors, found };
+}
+
+type NewsDataRow = { title?: string; link?: string; description?: string | null; pubDate?: string; source_name?: string; source_id?: string; duplicate?: boolean };
+
+// NewsData.io (https://newsdata.io). The source URL is saved without the key; NEWSDATA_API_KEY is added here.
+// Free plan: 10 results per request, 200 requests a day, news delayed by 12 hours. Links go straight to the publisher.
+export async function fetchNewsData(sourceUrl: string, maxPages = 2): Promise<Item[]> {
+  const key = process.env.NEWSDATA_API_KEY;
+  if (!key) throw new Error("NEWSDATA_API_KEY is not set");
+  const out: Item[] = [];
+  let page: string | undefined;
+  for (let n = 0; n < maxPages; n++) {
+    const url = new URL(sourceUrl);
+    url.searchParams.set("apikey", key);
+    if (page) url.searchParams.set("page", page);
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    const body = await res.json() as { status?: string; results?: NewsDataRow[] | { message?: string }; nextPage?: string | null };
+    if (body.status !== "success" || !Array.isArray(body.results)) {
+      const msg = (body.results as { message?: string } | undefined)?.message;
+      throw new Error(`newsdata ${res.status}: ${msg ?? "bad response"}`);
+    }
+    for (const r of body.results) {
+      if (!r.link || !r.title || r.duplicate) continue;
+      // pubDate is UTC, written as "YYYY-MM-DD HH:MM:SS".
+      const when = r.pubDate ? new Date(`${r.pubDate.replace(" ", "T")}Z`) : new Date();
+      out.push({
+        title: r.title.trim(),
+        link: r.link,
+        publisher: (r.source_name || r.source_id || "NewsData").trim(),
+        publishedAt: isNaN(when.getTime()) ? new Date() : when,
+        snippet: (r.description || "").replace(/\s+/g, " ").trim().slice(0, 500),
+        extra: [],
+      });
+    }
+    page = body.nextPage ?? undefined;
+    if (!page) break;
+  }
+  return out;
 }
 
 // Best effort: follow the Google redirect and pull out the main text of the publisher page.

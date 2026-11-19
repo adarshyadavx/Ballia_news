@@ -35,9 +35,14 @@ async function main() {
     const { data: catRows } = await supabase.from("categories").select("id,slug");
     const catId = new Map((catRows ?? []).map((c) => [c.slug as string, c.id as string]));
 
-    let made = 0;
+    let made = 0, checked = 0;
+    const started = Date.now();
     for (const item of col.items) {
       if (made >= cfg.maxStoriesPerRun || dailyLeft <= 0) break;
+      // Cost and time limits: unchecked items stay unseen and are picked up by the next run.
+      if (checked >= cfg.maxChecksPerRun) { console.log(`Stopped: ${checked} items checked (maxChecksPerRun).`); break; }
+      if (Date.now() - started > cfg.runBudgetMinutes * 60_000) { console.log("Stopped: run time budget used."); break; }
+      checked++;
       const markSeen = () => supabase.from("seen_items").upsert([item.link, ...item.extra.map((x) => x.link)].map((url) => ({ url, title: item.title })));
       try {
         const rel = await filterItem(cfg, item, recent);
@@ -52,7 +57,9 @@ async function main() {
         const art = await readArticle(item.link);
         const sources = [{ name: item.publisher, url: art.url }, ...item.extra.map((x) => ({ name: x.publisher, url: x.link }))];
         const story = await writeStory(cfg, { title: item.title, snippet: item.snippet, text: art.text, sources: sources.map((s) => s.name) });
-        if (!story?.headline || !story.body) { errors.push(`write failed: ${item.title}`); continue; }
+        // The model gave no usable story: mark it seen so it is not paid for again every 3 hours.
+        // (Thrown errors such as network or API outages are left unseen and retried next run.)
+        if (!story?.headline || !story.body) { errors.push(`write failed: ${item.title}`); await markSeen(); rejected++; continue; }
 
         const check = await checkStory(cfg, { title: item.title, snippet: item.snippet, text: art.text }, story);
         const reasons: string[] = [];

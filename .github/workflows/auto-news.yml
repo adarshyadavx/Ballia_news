@@ -8,9 +8,15 @@ on:
     inputs:
       mode:
         description: "collect (log only) | draft (always save as held) | run (normal)"
+        type: choice
+        options: [run, draft, collect]
         default: run
 
 concurrency: auto-news
+
+permissions:
+  contents: read
+  actions: write   # only for the keep-alive step below
 
 jobs:
   pipeline:
@@ -27,12 +33,26 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          NEWSDATA_API_KEY: ${{ secrets.NEWSDATA_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          # Passed through env (not pasted into the script) so input text can never run as shell code.
+          SCHEDULE: ${{ github.event.schedule }}
+          MODE: ${{ inputs.mode || 'run' }}
         run: |
-          if [ "${{ github.event.schedule }}" = "30 18 * * *" ]; then
+          if [ "$SCHEDULE" = "30 18 * * *" ]; then
             npm run pipeline:housekeeping
           else
-            npm run pipeline -- --mode=${{ github.event.inputs.mode || 'run' }}
+            case "$MODE" in run|draft|collect) ;; *) echo "Unknown mode: $MODE"; exit 1 ;; esac
+            npm run pipeline -- --mode="$MODE"
           fi
+
+      # GitHub switches off scheduled workflows after 60 days without a commit to the repo.
+      # Re-enabling it through the API every night keeps the automatic news running.
+      - name: Keep the schedule alive
+        if: github.event.schedule == '30 18 * * *'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/auto-news.yml/enable"

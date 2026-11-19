@@ -29,6 +29,8 @@ Ad keys in `config.json` that still contain `ADSTERRA_` render nothing, so the s
 
 ## Launch checklist (Phase 7)
 1. Run `supabase/remove-sample-news.sql`, then publish your first real stories.
+   The built-in sample stories (`features.sampleData`) only show while no story is published; set it to `false` to turn them off completely.
+   Also run `supabase/migrations/0004_hardening.sql` (contact-form flood limits, view-counter limits, held-story fix).
 2. Put real values in `config.json` (domain `site.url`, phone, email, WhatsApp, GA id) and replace `public/logo.svg`.
 3. Push to GitHub, import the repo on Vercel, add the two env vars from `.env.local`.
 4. Add your domain in Vercel, and set `site.url` to it.
@@ -46,6 +48,9 @@ Ad keys in `config.json` that still contain `ADSTERRA_` render nothing, so the s
    - `draft`: writes stories and saves them as held drafts to read and compare with the sources (3-5 days).
    - `run` with **Auto-publish** switched on in Admin > Auto News.
 5. The workflow runs every 3 hours (6 AM - 9 PM IST) and a midnight cleanup. Settings are in `config.json` > `autoNews`.
+
+NewsData.io source: run `supabase/migrations/0003_newsdata_source.sql`, and add `NEWSDATA_API_KEY` to `.env.local`
+and GitHub secrets. Its links go straight to the publisher, so the full article text can be read (free plan: news is 12 hours late).
 
 Notes: Google News links are redirects; when the real article page cannot be fetched, the story is written from the headline
 and snippet only and is automatically **held** for review instead of published.
