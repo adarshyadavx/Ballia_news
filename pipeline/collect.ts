@@ -7,6 +7,8 @@ import { jaccard, type AutoCfg } from "./lib";
 
 export type Item = { title: string; link: string; publisher: string; publishedAt: Date; snippet: string; extra: { publisher: string; link: string }[] };
 
+const isGoogle = (link: string) => /(^|\.)news\.google\.com$/.test(new URL(link).hostname);
+
 const parser = new Parser({ timeout: 15000, headers: { "user-agent": "Mozilla/5.0 (compatible; BalliaNewsBot/1.0)" } });
 
 export async function collect(supabase: SupabaseClient, cfg: AutoCfg): Promise<{ items: Item[]; errors: string[]; found: number }> {
@@ -58,8 +60,16 @@ export async function collect(supabase: SupabaseClient, cfg: AutoCfg): Promise<{
   const groups: Item[] = [];
   for (const it of fresh.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())) {
     const twin = groups.find((g) => jaccard(g.title, it.title) >= 0.6);
-    if (twin) { if (!twin.extra.some((x) => x.publisher === it.publisher)) twin.extra.push({ publisher: it.publisher, link: it.link }); }
-    else groups.push(it);
+    if (twin) {
+      // Prefer a direct publisher link (e.g. from NewsData) over a Google News link, which cannot be read.
+      if (isGoogle(twin.link) && !isGoogle(it.link)) {
+        twin.extra.push({ publisher: twin.publisher, link: twin.link });
+        Object.assign(twin, { title: it.title, link: it.link, publisher: it.publisher, snippet: it.snippet || twin.snippet });
+        twin.extra = twin.extra.filter((x) => x.publisher !== twin.publisher);
+      } else if (!twin.extra.some((x) => x.publisher === it.publisher)) {
+        twin.extra.push({ publisher: it.publisher, link: it.link });
+      }
+    } else groups.push(it);
   }
   return { items: groups, errors, found };
 }
