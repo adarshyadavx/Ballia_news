@@ -55,6 +55,13 @@ name Ballia or one of its areas are used; duplicates and Begusarai (Bihar) "ब�
 cases are held for review. Topic and area come from keywords. Add the key later to switch to AI-written stories.
 To fill the site right away: `npm run pipeline -- --force --max=40`.
 
+**Photos** (never the newspaper's own photo; each one is copied into Supabase storage and credited in the caption):
+1. Your image library (Admin > Auto News). `npm run pipeline:commons` adds free Ballia photos from Wikimedia Commons.
+2. Pexels, when `PEXELS_API_KEY` is set.
+3. Openverse (Creative Commons photos allowing commercial use, no key needed), searched by topic.
+4. The built-in illustration. `npm run pipeline:images` gives stories that still have one a real photo.
+Stock photos are "सांकेतिक तस्वीर" (symbolic); swap any unsuitable one in the story editor.
+
 NewsData.io source: run `supabase/migrations/0003_newsdata_source.sql`, and add `NEWSDATA_API_KEY` to `.env.local`
 and GitHub secrets. Its links go straight to the publisher, so the full article text can be read (free plan: news is 12 hours late).
 

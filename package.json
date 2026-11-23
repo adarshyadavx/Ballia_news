@@ -10,7 +10,9 @@
     "pipeline": "tsx --env-file-if-exists=.env.local pipeline/run.ts",
     "pipeline:collect": "tsx --env-file-if-exists=.env.local pipeline/run.ts --mode=collect",
     "pipeline:draft": "tsx --env-file-if-exists=.env.local pipeline/run.ts --mode=draft",
-    "pipeline:housekeeping": "tsx --env-file-if-exists=.env.local pipeline/housekeeping.ts"
+    "pipeline:housekeeping": "tsx --env-file-if-exists=.env.local pipeline/housekeeping.ts",
+    "pipeline:commons": "tsx --env-file-if-exists=.env.local pipeline/seed-commons.ts",
+    "pipeline:images": "tsx --env-file-if-exists=.env.local pipeline/refresh-images.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

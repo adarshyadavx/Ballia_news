@@ -26,13 +26,22 @@ const AREAS: [area: string, re: RegExp][] = [
 ];
 
 // English words for a stock photo search (only used when PEXELS_API_KEY is set).
-const PHOTO_WORDS: Record<string, string> = {
-  crime: "police india", politics: "india politics", education: "india school students", sports: "india sports ground",
-  agriculture: "farmer field india", jobs: "office work india", culture: "india temple festival", tehsil: "india village", "ballia-city": "india town street",
+// English words for a photo search (Openverse, or Pexels when PEXELS_API_KEY is set).
+export const PHOTO_WORDS: Record<string, string> = {
+  crime: "india police", politics: "india election rally", education: "india school classroom", sports: "india football match",
+  agriculture: "india farmer field", jobs: "india office", culture: "ganga ghat", tehsil: "uttar pradesh village",
+  "ballia-city": "uttar pradesh town", "uttar-pradesh": "uttar pradesh", accident: "india highway traffic",
 };
+const ACCIDENT = /हादसा|हादसे|दुर्घटना|टक्कर|सड़क\s*हादसे/;
+
+// Photo topic can differ from the news category: a road accident gets a road photo.
+export function photoTopic(category: string, headline: string): { photoCategory: string; keywords: string } {
+  const photoCategory = ACCIDENT.test(headline) ? "accident" : category;
+  return { photoCategory, keywords: PHOTO_WORDS[photoCategory] ?? PHOTO_WORDS["ballia-city"] };
+}
 
 export type Pick =
-  | { ok: true; category: string; area: string; tags: string[]; keywords: string; sensitive: boolean }
+  | { ok: true; category: string; area: string; tags: string[]; keywords: string; photoCategory: string; sensitive: boolean }
   | { ok: false; reason: string };
 
 // Sexual offences and similar cases are never published without a human (or AI) check.
@@ -75,7 +84,7 @@ export function pickBrief(cfg: AutoCfg, item: Item, recent: string[]): Pick {
   const category = topic ?? (area ? "tehsil" : "ballia-city");
   const catName = baseConfig.categories.find((c) => c.slug === category)?.name;
   const tags = [area || "बलिया", ...(topic && catName ? [catName] : [])];
-  return { ok: true, category, area, tags, keywords: PHOTO_WORDS[category] ?? PHOTO_WORDS["ballia-city"], sensitive: SENSITIVE.test(text) };
+  return { ok: true, category, area, tags, ...photoTopic(category, title), sensitive: SENSITIVE.test(text) };
 }
 
 export function cleanHeadline(t: string): string {

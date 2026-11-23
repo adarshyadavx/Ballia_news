@@ -52,7 +52,7 @@ async function main() {
       const markSeen = () => supabase.from("seen_items").upsert([item.link, ...item.extra.map((x) => x.link)].map((url) => ({ url, title: item.title })));
       try {
         let story: { headline: string; summary: string; html: string; breaking: boolean; writer: string };
-        let meta: { category: string; area: string; tags: string[]; keywords: string };
+        let meta: { category: string; area: string; tags: string[]; keywords: string; photoCategory?: string };
         let sources: { name: string; url: string }[];
         let confidence: number | null = null;
         const reasons: string[] = [];
@@ -108,7 +108,9 @@ async function main() {
           meta = { category: rel.category, area: rel.area, tags: rel.tags ?? [], keywords: rel.english_keywords ?? "" };
         }
 
-        const img = await pickImage(supabase, cfg, { category: meta.category, area: meta.area, tags: meta.tags, keywords: meta.keywords });
+        const img = await pickImage(supabase, cfg, {
+          category: meta.photoCategory ?? meta.category, area: meta.area, tags: meta.tags, keywords: meta.keywords, seed: story.headline,
+        });
         const publish = mode === "run" && cfg.autoPublish && reasons.length === 0;
         if (mode === "draft" || !cfg.autoPublish) reasons.push("ऑटो-पब्लिश बंद (ड्राफ्ट)");
 

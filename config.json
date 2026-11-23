@@ -192,6 +192,7 @@
     "images": {
       "useLibrary": true,
       "usePexels": true,
+      "useOpenverse": true,
       "allowAiImages": false,
       "caption": "सांकेतिक तस्वीर"
     },
