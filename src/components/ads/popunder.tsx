@@ -1,15 +1,20 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { config } from "@/lib/config";
-import { injectScript, isReal, scriptSrc } from "./ad-utils";
+import { injectScript, isExcluded, isReal, scriptSrc } from "./ad-utils";
 
-// News detail only. Never on the visitor's first page, max N per 24h, only after a click.
+// Pages from config.ads.popunder.pages ("all" or "newsDetail"). Never on the visitor's first page,
+// never on excluded pages (about/contact/privacy), max N per 24h, only after a click.
 export function Popunder() {
   const c = config.ads.popunder;
   const on = config.ads.enabled && c.enabled && isReal(c.key);
+  const path = usePathname(); // the layout stays mounted, so re-check on every page change
 
   useEffect(() => {
-    if (!on) return;
+    if (!on || !path) return;
+    const pages: string[] = c.pages;
+    if (isExcluded(path) || !(pages.includes("all") || (pages.includes("newsDetail") && path.startsWith("/news/")))) return;
     const src = scriptSrc(c.key);
     if (!src) return;
     try {
@@ -31,7 +36,7 @@ export function Popunder() {
       document.addEventListener("click", onClick, { once: true });
       return () => document.removeEventListener("click", onClick);
     } catch {}
-  }, [on, c]);
+  }, [on, c, path]);
 
   return null;
 }

@@ -4,6 +4,7 @@ import { Header, HeaderView } from "@/components/layout/header";
 import { Footer, FooterView } from "@/components/layout/footer";
 import { BreakingStrip } from "@/components/layout/breaking-strip";
 import { SocialBar } from "@/components/ads/social-bar";
+import { Popunder } from "@/components/ads/popunder";
 import { Analytics } from "@/components/layout/analytics";
 import { MobileNavLoader } from "@/components/layout/mobile-nav-server";
 import { PullToRefresh } from "@/components/layout/pull-to-refresh";
@@ -40,6 +41,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <Suspense fallback={null}><MobileNavLoader /></Suspense>
       <PullToRefresh />
       <SocialBar />
+      <Suspense fallback={null}><Popunder /></Suspense>
       <Analytics />
     </>
   );

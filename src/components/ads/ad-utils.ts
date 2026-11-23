@@ -6,10 +6,15 @@ export const isReal = (v?: string) => !!v && !v.includes("ADSTERRA_");
 export const isExcluded = (path: string) =>
   config.ads.excludedPages.some((p) => path === p || path.startsWith(`${p}/`));
 
-// Adsterra native/social bar/popunder keys are the script URL Adsterra gives you
-// (e.g. //pl123.example.com/abc123/invoke.js). Container id = the folder before invoke.js.
+// Adsterra native/social bar/popunder keys are the script URL Adsterra gives you, either the
+// new form https://domain/21/<id> or the old //pl123.example.com/<id>/invoke.js.
+// The native banner fills <div id="container-<id>">.
 export const scriptSrc = (v: string) => (v.startsWith("//") || v.startsWith("http") ? v : "");
-export const containerId = (src: string) => `container-${src.split("/").slice(-2, -1)[0]}`;
+export function containerId(src: string): string {
+  const parts = src.split("?")[0].split("/").filter(Boolean);
+  const last = parts[parts.length - 1];
+  return `container-${last === "invoke.js" ? parts[parts.length - 2] : last}`;
+}
 
 export function injectScript(src: string, parent: HTMLElement) {
   const s = document.createElement("script");

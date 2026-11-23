@@ -12,7 +12,6 @@ import { NewsCard, SectionTitle } from "@/components/news/news-card";
 import { ShareButtons, ShareFab } from "@/components/news/share-buttons";
 import { ViewCounter } from "@/components/news/view-counter";
 import { AdSlot } from "@/components/ads/ad-slot";
-import { Popunder } from "@/components/ads/popunder";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -45,7 +44,6 @@ export default async function NewsPage({ params }: Props) {
     <main className="shell rise py-8 lg:py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(newsJsonLd(news)).replace(/</g, "\\u003c") }} />
       <ViewCounter newsId={news.id} />
-      <Popunder />
 
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-14">
         <article className="min-w-0 lg:col-span-8">

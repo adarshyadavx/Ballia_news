@@ -26,6 +26,11 @@ Ad keys in `config.json` that still contain `ADSTERRA_` render nothing, so the s
   (looks like `//pl123.example.com/abcdef/invoke.js`).
 - `smartlink.url`: your Smartlink. Set `enabled: true` to switch a format on.
 - Week 3: set `popunder.enabled` true. Week 4: set `smartlink.enabled` true.
+- Live now: native banner (one per page, first ad slot), social bar (all pages), popunder (all pages, max once a day,
+  never on the first page view or on about/contact/privacy), smartlink (footer and 404).
+- Adult ads cannot be filtered in code: the ad network picks the ad. In the Adsterra dashboard, register the site as a
+  mainstream **News** site (not adult), and ask your Adsterra manager/support to block adult, dating and gambling ads
+  on every ad unit.
 
 ## Launch checklist (Phase 7)
 1. Run `supabase/remove-sample-news.sql`, then publish your first real stories.

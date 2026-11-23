@@ -111,11 +111,11 @@
     ],
     "nativeBanner": {
       "enabled": true,
-      "key": "ADSTERRA_NATIVE_KEY",
+      "key": "https://bicea.org/21/1a97409d4a3055eba7a62a83ccf867ce",
       "homeEvery": 5,
       "categoryEvery": 6,
       "articleAfterParagraph": 3,
-      "maxPerPage": 2
+      "maxPerPage": 1
     },
     "displayBanner": {
       "enabled": true,
@@ -135,22 +135,22 @@
     },
     "socialBar": {
       "enabled": true,
-      "key": "ADSTERRA_SOCIALBAR_KEY",
+      "key": "https://bicea.org/14/4f90fb40f9b0684c5a5cf9404381bc28",
       "delaySeconds": 10,
       "orShowAfterScrollPercent": 50
     },
     "popunder": {
-      "enabled": false,
-      "key": "ADSTERRA_POPUNDER_KEY",
+      "enabled": true,
+      "key": "https://afders.org/1/0f4db02baba3d9dd59bf7162e5263f18",
       "pages": [
-        "newsDetail"
+        "all"
       ],
       "maxPerDay": 1,
       "skipFirstPageView": true
     },
     "smartlink": {
-      "enabled": false,
-      "url": "https://ADSTERRA_SMARTLINK_URL",
+      "enabled": true,
+      "url": "https://arwf.org/4/b1c9c23c7dc61e6ac2c28f73091b6c95",
       "text": "Sponsored",
       "showInFooter": true,
       "showOn404": true

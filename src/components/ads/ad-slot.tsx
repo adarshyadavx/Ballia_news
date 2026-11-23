@@ -22,16 +22,37 @@ function resolve(slot: Slot) {
   }
 }
 
+// One native banner code fills one container per page, so only the first native slot on a page
+// shows it; the other native slots on that page render nothing (no empty boxes).
+const nativeOwner = { path: "", id: 0 };
+let nextSlotId = 1;
+
 export function AdSlot({ slot, className = "" }: { slot: Slot; className?: string }) {
   const [path, setPath] = useState<string | null>(null);
-  useEffect(() => setPath(window.location.pathname), []);
+  const [slotId] = useState(() => nextSlotId++);
+  const [owner, setOwner] = useState(slot !== "native");
   const cfg = resolve(slot);
+
+  useEffect(() => {
+    const here = window.location.pathname;
+    setPath(here);
+    if (slot !== "native") return;
+    if (nativeOwner.path !== here) {
+      nativeOwner.path = here;
+      nativeOwner.id = slotId;
+    }
+    setOwner(nativeOwner.id === slotId);
+    return () => {
+      if (nativeOwner.id === slotId) nativeOwner.path = "";
+    };
+  }, [slot, slotId]);
+
   const box = useRef<HTMLDivElement>(null);
   const [pageLoaded, setPageLoaded] = useState(false);
   const [visible, setVisible] = useState(false);
   const started = useRef(false);
 
-  const active = path !== null && !!cfg && isReal(cfg.key) && !isExcluded(path);
+  const active = path !== null && owner && !!cfg && isReal(cfg.key) && !isExcluded(path);
 
   // Ads wait for the page, then for the reader to scroll near them.
   useEffect(() => {
