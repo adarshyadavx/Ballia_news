@@ -35,7 +35,8 @@ async function main() {
     console.log(`Found ${col.found} items, ${col.items.length} new after cleaning.`);
 
     const { count: todayCount } = await supabase.from("news").select("id", { count: "exact", head: true }).eq("is_auto", true).gte("created_at", new Date(Date.now() - 24 * 3600_000).toISOString());
-    let dailyLeft = Math.max(0, Math.max(cfg.maxStoriesPerDay, maxPerRun) - (todayCount ?? 0));
+    // A manual run with --max=N may add N stories even past the daily limit (the scheduled runs keep it).
+    let dailyLeft = maxArg ? maxArg : Math.max(0, cfg.maxStoriesPerDay - (todayCount ?? 0));
     const { data: recentRows } = await supabase.from("news").select("headline").order("created_at", { ascending: false }).limit(60);
     const recent = (recentRows ?? []).map((r) => r.headline as string);
     const { data: catRows } = await supabase.from("categories").select("id,slug");
