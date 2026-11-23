@@ -49,6 +49,12 @@ Ad keys in `config.json` that still contain `ADSTERRA_` render nothing, so the s
    - `run` with **Auto-publish** switched on in Admin > Auto News.
 5. The workflow runs every 3 hours (6 AM - 9 PM IST) and a midnight cleanup. Settings are in `config.json` > `autoNews`.
 
+**No-AI mode:** without `ANTHROPIC_API_KEY` the pipeline still runs. It publishes short briefs: the newspaper's own
+Hindi headline and opening lines, credited and linked to the full story (`pipeline/digest.ts`). Only Hindi headlines that
+name Ballia or one of its areas are used; duplicates and Begusarai (Bihar) "बलिया" stories are skipped; sexual-offence
+cases are held for review. Topic and area come from keywords. Add the key later to switch to AI-written stories.
+To fill the site right away: `npm run pipeline -- --force --max=40`.
+
 NewsData.io source: run `supabase/migrations/0003_newsdata_source.sql`, and add `NEWSDATA_API_KEY` to `.env.local`
 and GitHub secrets. Its links go straight to the publisher, so the full article text can be read (free plan: news is 12 hours late).
 

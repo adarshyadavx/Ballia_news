@@ -114,16 +114,19 @@ export async function fetchNewsData(sourceUrl: string, maxPages = 2): Promise<It
 
 // Best effort: follow the Google redirect and pull out the main text of the publisher page.
 // Only used to understand the story; the text is never republished.
-export async function readArticle(link: string): Promise<{ url: string; text: string }> {
+// `excerpt` is the page's own share description (og:description / meta description).
+export async function readArticle(link: string): Promise<{ url: string; text: string; excerpt: string }> {
   try {
     const res = await fetch(link, { redirect: "follow", signal: AbortSignal.timeout(15000), headers: { "user-agent": "Mozilla/5.0 (compatible; BalliaNewsBot/1.0)" } });
     const html = await res.text();
     const finalUrl = res.url;
-    if (/news\.google\.com/.test(finalUrl)) return { url: link, text: "" }; // redirect not resolved (JS page)
+    if (/news\.google\.com/.test(finalUrl)) return { url: link, text: "", excerpt: "" }; // redirect not resolved (JS page)
     const doc = new JSDOM(html, { url: finalUrl }).window.document;
+    const meta = (sel: string) => doc.querySelector(sel)?.getAttribute("content")?.trim() ?? "";
+    const excerpt = meta('meta[property="og:description"]') || meta('meta[name="description"]');
     const art = new Readability(doc).parse();
-    return { url: finalUrl, text: (art?.textContent || "").replace(/\s+/g, " ").trim().slice(0, 6000) };
+    return { url: finalUrl, text: (art?.textContent || "").replace(/\s+/g, " ").trim().slice(0, 6000), excerpt };
   } catch {
-    return { url: link, text: "" };
+    return { url: link, text: "", excerpt: "" };
   }
 }
