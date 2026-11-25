@@ -54,7 +54,7 @@ Ad keys in `config.json` that still contain `ADSTERRA_` render nothing, so the s
    - `run` with **Auto-publish** switched on in Admin > Auto News.
 5. The workflow runs every 3 hours (6 AM - 9 PM IST) and a midnight cleanup. Settings are in `config.json` > `autoNews`.
 
-**No-AI mode:** without `ANTHROPIC_API_KEY` the pipeline still runs. It publishes short briefs: the newspaper's own
+**No-AI mode:** without `GEMINI_API_KEY` (free) or `ANTHROPIC_API_KEY` the pipeline still runs. It publishes short briefs: the newspaper's own
 Hindi headline and opening lines, credited and linked to the full story (`pipeline/digest.ts`). Only Hindi headlines that
 name Ballia or one of its areas are used; duplicates and Begusarai (Bihar) "बलिया" stories are skipped; sexual-offence
 cases are held for review. Topic and area come from keywords. Add the key later to switch to AI-written stories.

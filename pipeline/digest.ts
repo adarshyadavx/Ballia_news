@@ -1,4 +1,4 @@
-// No-AI mode: used when ANTHROPIC_API_KEY is not set.
+// No-AI mode: used when neither GEMINI_API_KEY nor ANTHROPIC_API_KEY is set.
 // Each story becomes a short brief: the publisher's own headline and summary, credited to the
 // publisher and linked to the full story. Nothing is invented; topic and area come from keywords.
 import type { Item } from "./collect";

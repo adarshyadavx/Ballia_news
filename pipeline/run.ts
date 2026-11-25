@@ -2,7 +2,7 @@
 //   collect : only log what would be picked (test stage 1)
 //   draft   : write stories but always save them as held drafts (test stage 2)
 //   run     : normal mode; publishes when autoNews.autoPublish is true
-// Without ANTHROPIC_API_KEY the pipeline runs in no-AI mode (pipeline/digest.ts): short briefs
+// Without GEMINI_API_KEY or ANTHROPIC_API_KEY the pipeline runs in no-AI mode (pipeline/digest.ts): short briefs
 // with the publisher's own headline and summary, credited and linked.
 import { alert, db, istHour, loadConfig, makeSlug, revalidateSite, baseConfig } from "./lib";
 import { collect, readArticle } from "./collect";
@@ -13,7 +13,7 @@ import { pickImage } from "./images";
 const mode = (process.argv.find((a) => a.startsWith("--mode="))?.split("=")[1] ?? "run") as "collect" | "draft" | "run";
 const force = process.argv.includes("--force");
 const maxArg = Number(process.argv.find((a) => a.startsWith("--max="))?.split("=")[1]) || 0;
-const useAi = Boolean(process.env.ANTHROPIC_API_KEY);
+const useAi = Boolean(process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY);
 
 async function main() {
   const supabase = db();
@@ -22,7 +22,7 @@ async function main() {
   const h = istHour();
   if (!force && (h < cfg.activeHoursIST.from || h >= cfg.activeHoursIST.to)) { console.log(`Outside active hours (IST ${h}).`); return; }
   const maxPerRun = maxArg || cfg.maxStoriesPerRun;
-  console.log(useAi ? "AI mode." : "No-AI mode (ANTHROPIC_API_KEY not set): publishing source briefs.");
+  console.log(useAi ? "AI mode." : "No-AI mode (no GEMINI_API_KEY or ANTHROPIC_API_KEY): publishing source briefs.");
 
   const { data: runRow } = await supabase.from("pipeline_runs").insert({ mode, note: useAi ? null : "no-ai" }).select("id").single();
   const runId = runRow?.id as string | undefined;

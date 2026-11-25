@@ -27,13 +27,54 @@ export async function loadConfig(supabase: SupabaseClient): Promise<AutoCfg> {
 let _ai: Anthropic | null = null;
 const ai = () => (_ai ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }));
 
+// Free option: Google Gemini (key from https://aistudio.google.com/apikey). Used when GEMINI_API_KEY is set,
+// otherwise the pipeline falls back to Anthropic. Model names come from config.json (autoNews.geminiModels).
+// The free tier allows only a few requests a minute, so calls are spaced out and 429 answers are retried.
+let lastGemini = 0;
+const GEMINI_GAP_MS = 6500;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function geminiText(model: string, system: string, user: string, maxTokens: number): Promise<string> {
+  const key = process.env.GEMINI_API_KEY!;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const wait = lastGemini + GEMINI_GAP_MS - Date.now();
+    if (wait > 0) await sleep(wait);
+    lastGemini = Date.now();
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: "user", parts: [{ text: user }] }],
+        generationConfig: { maxOutputTokens: maxTokens, temperature: 0.3, responseMimeType: "application/json", thinkingConfig: model.includes("2.5") ? { thinkingBudget: 0 } : { thinkingLevel: "low" } },
+      }),
+      signal: AbortSignal.timeout(120000),
+    });
+    if (res.status === 429 || res.status === 503) { await sleep(15000 * (attempt + 1)); continue; }
+    if (!res.ok) throw new Error(`gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const body = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+    return (body.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
+  }
+  throw new Error("gemini: rate limit (free quota used up), will retry next run");
+}
+
+// Which of the two model names in config.json to use for a given step.
+export function modelFor(cfg: AutoCfg, step: "filter" | "write" | "check"): string {
+  const g = (cfg as AutoCfg & { geminiModels?: Record<string, string> }).geminiModels;
+  return process.env.GEMINI_API_KEY && g ? g[step] : cfg.models[step];
+}
+
 // Ask a model for JSON only and parse it. Returns null if the answer is not valid JSON.
 export async function askJson<T>(model: string, system: string, user: string, maxTokens = 1200): Promise<T | null> {
-  const res = await ai().messages.create({
-    model, max_tokens: maxTokens, system: `${system}\n\nReply with one JSON object only. No markdown, no commentary.`,
-    messages: [{ role: "user", content: user }],
-  });
-  const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  const sys = `${system}\n\nReply with one JSON object only. No markdown, no commentary.`;
+  let text: string;
+  if (model.startsWith("gemini")) {
+    if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not set");
+    text = await geminiText(model, sys, user, maxTokens);
+  } else {
+    const res = await ai().messages.create({ model, max_tokens: maxTokens, system: sys, messages: [{ role: "user", content: user }] });
+    text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  }
   const m = text.match(/\{[\s\S]*\}/);
   if (!m) return null;
   try { return JSON.parse(m[0]) as T; } catch { return null; }

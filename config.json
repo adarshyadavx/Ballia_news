@@ -166,14 +166,14 @@
     },
     "maxStoriesPerRun": 6,
     "maxStoriesPerDay": 30,
-    "maxChecksPerRun": 40,
+    "maxChecksPerRun": 15,
     "runBudgetMinutes": 11,
     "maxAgeHours": 24,
     "relevanceMinScore": 70,
     "confidenceMinScore": 75,
     "wordCount": {
-      "min": 80,
-      "max": 150
+      "min": 180,
+      "max": 320
     },
     "keywords": [
       "बलिया",
@@ -188,6 +188,11 @@
       "filter": "claude-haiku-5-5",
       "write": "claude-sonnet-5-5",
       "check": "claude-haiku-5-5"
+    },
+    "geminiModels": {
+      "filter": "gemini-flash-lite-latest",
+      "write": "gemini-3.5-flash",
+      "check": "gemini-flash-lite-latest"
     },
     "images": {
       "useLibrary": true,
