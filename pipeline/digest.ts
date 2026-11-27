@@ -13,7 +13,8 @@ const TOPICS: [slug: string, re: RegExp][] = [
   ["education", /स्कूल|विद्यालय|कॉलेज|महाविद्यालय|विश्वविद्यालय|परीक्षा|छात्र|छात्रा|शिक्षक|शिक्षा|प्रवेश/],
   ["sports", /खेल|क्रिकेट|फुटबॉल|कबड्डी|वॉलीबॉल|खिलाड़ी|टूर्नामेंट|मैच/],
   ["agriculture", /किसान|खेती|फसल|धान|गेहूं|गेहूँ|खाद|बीज|मंडी|सिंचाई|पशुपालन/],
-  ["jobs", /नौकरी|भर्ती|रोजगार|रोज़गार|वैकेंसी/],
+  // Bare "भर्ती" also means admitted to hospital ("मरीज भर्ती"), so only job phrases count.
+  ["jobs", /नौकरी|रोजगार|रोज़गार|वैकेंसी|नियुक्ति|भर्ती\s*(?:परीक्षा|प्रक्रिया|अभियान|रैली|निकली)|पदों\s*पर\s*भर्ती|करेंगी\s*भर्ती/],
   ["culture", /मेला|मंदिर|पूजा|आरती|कथा|जयंती|पर्व|त्योहार|त्यौहार|स्नान|धार्मिक|संस्कृति|साहित्य|कवि|सम्मेलन|ददरी/],
 ];
 
@@ -47,7 +48,8 @@ export type Pick =
 // Sexual offences and similar cases are never published without a human (or AI) check.
 const SENSITIVE = /दुष्कर्म|बलात्कार|यौन|गैंगरेप|छेड़छाड़|छेड़खानी|पॉक्सो|pocso|अश्लील|आत्महत्या/i;
 // Begusarai (Bihar) has its own "बलिया"; those stories are not about Ballia, UP.
-const OTHER_BALLIA = /बेगूसराय|begusarai|बिहार|bihar/i;
+// Bihar also has a Balia block (Begusarai) and a "बलिया मोड़" in Manjhi (Saran), across the river.
+const OTHER_BALLIA = /बेगूसराय|begusarai|बिहार|bihar|बलिया\s*मोड़|मांझी|सारण/i;
 
 // Zero-width characters sometimes sit inside Hindi words (e.g. "बल‍िया").
 const norm = (s: string) => s.replace(/[​-‍⁠﻿]/g, "");
@@ -72,15 +74,19 @@ export function pickBrief(cfg: AutoCfg, item: Item, recent: string[]): Pick {
   const raw = norm(item.title);
   const title = cleanHeadline(raw);
   if (!hasHindi(title)) return { ok: false, reason: "not Hindi" };
-  // Ballia or one of its areas must be in the headline itself (a "Ballia News:" prefix counts).
-  if (!cfg.keywords.some((k) => raw.toLowerCase().includes(k.toLowerCase()))) return { ok: false, reason: "not about Ballia" };
+  // Ballia or one of its areas must be in the headline itself (a "Ballia News:" prefix counts, and so does
+  // Amar Ujala's "Balia News:" spelling; the Begusarai check below still applies).
+  const named = cfg.keywords.some((k) => raw.toLowerCase().includes(k.toLowerCase())) || /^\s*balia\s*news\s*[:\-–|]/i.test(raw);
+  if (!named) return { ok: false, reason: "not about Ballia" };
   if (OTHER_BALLIA.test(raw)) return { ok: false, reason: "Begusarai/Bihar" };
   if (recent.some((h) => jaccard(h, title) >= 0.5 || sameEvent(h, title))) return { ok: false, reason: "duplicate" };
 
   const text = norm(`${title} ${item.snippet}`);
   const area = AREAS.find(([, re]) => re.test(text))?.[0] ?? "";
   // Topic from the headline first; the snippet only when the headline gives no clue.
-  const topic = TOPIC_RES.find(([, re]) => re.test(title))?.[0] ?? TOPIC_RES.find(([, re]) => re.test(text))?.[0];
+  // Road accidents go to the local category ("स्कूली वैन की टक्कर" is not education news).
+  const accident = /हादसा|हादसे|दुर्घटना|टक्कर/.test(title);
+  const topic = accident ? undefined : TOPIC_RES.find(([, re]) => re.test(title))?.[0] ?? TOPIC_RES.find(([, re]) => re.test(text))?.[0];
   const category = topic ?? (area ? "tehsil" : "ballia-city");
   const catName = baseConfig.categories.find((c) => c.slug === category)?.name;
   const tags = [area || "बलिया", ...(topic && catName ? [catName] : [])];
@@ -89,10 +95,25 @@ export function pickBrief(cfg: AutoCfg, item: Item, recent: string[]): Pick {
 
 export function cleanHeadline(t: string): string {
   return norm(t)
-    .replace(/^\s*(ballia\s*news|ballia|बलिया\s*न्यूज़?|up\s*news)\s*[:\-–|]\s*/i, "")
+    .replace(/^\s*(ballia\s*news|balia\s*news|ballia|बलिया\s*न्यूज़?|up\s*news)\s*[:\-–|]\s*/i, "")
+    // Other English labels before a Hindi headline ("Purvanchal Weather: ...", "UP Petrol Diesel Price: ...")
+    .replace(/^\s*[A-Za-z][A-Za-z0-9 .,&'’-]{1,50}\s*:\s*(?=[ऀ-ॿ])/, "")
     .replace(/\s+[-–|]\s+[A-Za-z0-9 ,.'’!?&-]+$/, "") // trailing " - Ballia News" or an English web-address tail
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    // Feeds cut long headlines ("मुख्य बात: ब्योरा ..."). Keep the complete part before the colon when it still
+    // names the place; otherwise keep the whole headline with a clean ellipsis.
+    .replace(/^(.{15,}?):\s.*?(?:\.{3}|…)$/, (all, head: string) => (PLACE.test(head) ? head : all.replace(/\s*(?:\.{3}|…)$/, "…")));
+}
+
+const PLACE = /बलिया|ballia|बांसडीह|बाँसडीह|रसड़ा|रसडा|बेल्थरा|सिकंदरपुर|सिकन्दरपुर|बैरिया/i;
+
+// Headline for the site: at most `max` characters, ending on a whole word.
+export function shortHeadline(t: string, max = 120): string {
+  const h = cleanHeadline(t);
+  if (h.length <= max) return h;
+  const cut = h.slice(0, max);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[\s,;:!-]+$/, "")}…`;
 }
 
 // Cut at a sentence or word end so the summary never stops mid-word.
@@ -129,11 +150,11 @@ function lead(text: string): string {
 }
 
 export function buildBrief(item: Item, article: { url: string; excerpt: string; text: string }, area: string) {
-  const headline = cleanHeadline(item.title).slice(0, 120);
+  const headline = shortHeadline(item.title);
   // The publisher's own words, in order of preference: share description, feed snippet, opening
   // sentences of the article. Only Hindi text that says more than the headline is used.
   const candidates = [article.excerpt, item.snippet, lead(article.text)].map((s) => norm(s).replace(/\s+/g, " ").trim());
-  const own = candidates.find((s) => s.length > 40 && hasHindi(s) && !repeatsHeadline(s, headline));
+  const own = candidates.find((s) => s.length > 40 && hasHindi(s) && !repeatsHeadline(s, headline) && !repeatsHeadline(s, norm(item.title)));
   const summary = own
     ? clip(own, 280)
     : `${area || "बलिया"} से जुड़ी यह खबर ${item.publisher} ने प्रकाशित की है। पूरी जानकारी के लिए मूल खबर पढ़ें।`;

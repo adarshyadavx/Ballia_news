@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/page-skeleton";
 import Link from "next/link";
 import { ChevronRight, Clock, MapPin } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -27,7 +29,7 @@ function splitAfter(html: string, n: number): [string, string] {
   return [parts.slice(0, n).join(""), parts.slice(n).join("")];
 }
 
-export default async function NewsPage({ params }: Props) {
+async function NewsPageContent({ params }: Props) {
   const news = await getNewsBySlug(decodeParam((await params).slug));
   if (!news) notFound();
 
@@ -148,4 +150,9 @@ export default async function NewsPage({ params }: Props) {
       {config.features.stickyWhatsappShare && <ShareFab headline={news.headline} />}
     </main>
   );
+}
+
+// Data loads inside Suspense so a client navigation shows the skeleton at once instead of waiting.
+export default function NewsPage(props: Props) {
+  return <Suspense fallback={<PageSkeleton />}><NewsPageContent {...props} /></Suspense>;
 }

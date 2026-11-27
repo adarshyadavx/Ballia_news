@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/page-skeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -18,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return pageMeta(`${cat.name} समाचार`, `${config.site.name} पर ${cat.name} की ताज़ा खबरें`, `/category/${cat.slug}`);
 }
 
-export default async function CategoryPage({ params }: Props) {
+async function CategoryPageContent({ params }: Props) {
   const slug = decodeParam((await params).slug);
   const cat = await getCategory(slug);
   if (!cat) notFound();
@@ -59,4 +61,9 @@ export default async function CategoryPage({ params }: Props) {
       </div>
     </main>
   );
+}
+
+// Data loads inside Suspense so a client navigation shows the skeleton at once instead of waiting.
+export default function CategoryPage(props: Props) {
+  return <Suspense fallback={<PageSkeleton />}><CategoryPageContent {...props} /></Suspense>;
 }

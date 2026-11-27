@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/page-skeleton";
 import Link from "next/link";
 import { config } from "@/lib/config";
 import { getCategories, getFeatured, getLatest, getMostRead, getVideoNews } from "@/lib/data";
@@ -8,7 +10,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(`${config.site.name} - ${config.site.tagline}`, config.site.tagline, "/");
 
-export default async function HomePage() {
+async function HomePageContent() {
   const pageSize = config.homepage.latestNewsCount;
   const [featured, latest, cats, mostRead, videos] = await Promise.all([
     getFeatured(5),
@@ -90,4 +92,9 @@ export default async function HomePage() {
       </div>
     </main>
   );
+}
+
+// Data loads inside Suspense so a client navigation shows the skeleton at once instead of waiting.
+export default function HomePage() {
+  return <Suspense fallback={<PageSkeleton />}><HomePageContent /></Suspense>;
 }

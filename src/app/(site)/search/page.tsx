@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/layout/page-skeleton";
 import type { Metadata } from "next";
 import { Search } from "lucide-react";
 import { getLatest, searchNews } from "@/lib/data";
@@ -7,7 +9,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = { ...pageMeta("खबर खोजें", "बलिया न्यूज़ पर खबरें खोजें", "/search"), robots: { index: false } };
 
-export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+async function SearchPageContent({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const q = ((await searchParams).q ?? "").trim().slice(0, 100);
   const results = q ? await searchNews(q) : [];
   const latest = q && results.length === 0 ? await getLatest({ limit: 10 }) : [];
@@ -46,4 +48,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       )}
     </main>
   );
+}
+
+// Data loads inside Suspense so a client navigation shows the skeleton at once instead of waiting.
+export default function SearchPage(props: { searchParams: Promise<{ q?: string }> }) {
+  return <Suspense fallback={<PageSkeleton />}><SearchPageContent {...props} /></Suspense>;
 }
