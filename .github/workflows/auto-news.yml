@@ -2,7 +2,9 @@ name: Auto news
 
 on:
   schedule:
-    - cron: "30 0,3,6,9,12,15 * * *"   # every 3 hours, 6 AM - 9 PM IST
+    # Hourly, 6:47 AM - 9:47 PM IST. GitHub often delays or drops scheduled runs, so ask often;
+    # a run with nothing new costs no AI quota. Off the hour, when GitHub is less loaded.
+    - cron: "17 1-16 * * *"
     - cron: "30 18 * * *"               # midnight IST: housekeeping
   workflow_dispatch:
     inputs:

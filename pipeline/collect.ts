@@ -7,7 +7,7 @@ import { jaccard, type AutoCfg } from "./lib";
 
 export type Item = { title: string; link: string; publisher: string; publishedAt: Date; snippet: string; extra: { publisher: string; link: string }[] };
 
-const isGoogle = (link: string) => /(^|\.)news\.google\.com$/.test(new URL(link).hostname);
+export const isGoogle = (link: string) => /(^|\.)news\.google\.com$/.test(new URL(link).hostname);
 
 const parser = new Parser({ timeout: 15000, headers: { "user-agent": "Mozilla/5.0 (compatible; BalliaNewsBot/1.0)" } });
 
@@ -78,7 +78,7 @@ type NewsDataRow = { title?: string; link?: string; description?: string | null;
 
 // NewsData.io (https://newsdata.io). The source URL is saved without the key; NEWSDATA_API_KEY is added here.
 // Free plan: 10 results per request, 200 requests a day, news delayed by 12 hours. Links go straight to the publisher.
-export async function fetchNewsData(sourceUrl: string, maxPages = 2): Promise<Item[]> {
+export async function fetchNewsData(sourceUrl: string, maxPages = 4): Promise<Item[]> {
   const key = process.env.NEWSDATA_API_KEY;
   if (!key) throw new Error("NEWSDATA_API_KEY is not set");
   const out: Item[] = [];

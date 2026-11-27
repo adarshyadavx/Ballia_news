@@ -27,7 +27,7 @@ export type Written = { headline: string; summary: string; body: string; breakin
 
 export async function writeStory(cfg: AutoCfg, input: { title: string; snippet: string; text: string; sources: string[] }) {
   const { min, max } = cfg.wordCount;
-  return askJson<Written>(modelFor(cfg, "write"),
+  const write = (model: string) => askJson<Written>(model,
     `You are a careful Hindi news writer for a Ballia local news website. Rules: 1) write in your own words, never copy sentences from the source; ` +
     `2) use ONLY facts present in the material given, no guesses, no opinions, no invented names, numbers or quotes; ` +
     `3) neutral simple Hindi; attribute claims ("पुलिस के अनुसार", "प्रशासन के अनुसार"); 4) never name victims of sexual offences or child victims; ` +
@@ -35,6 +35,14 @@ export async function writeStory(cfg: AutoCfg, input: { title: string; snippet: 
     `Source headline: ${input.title}\nSnippet: ${input.snippet}\nSource text:\n${input.text || "(not available, use the headline and snippet only)"}\nPublishers: ${input.sources.join(", ")}\n\n` +
     `JSON keys: headline (Hindi, max 70 characters), summary (Hindi, one line, max 180 characters), body (Hindi, ${min}-${max} words, plain paragraphs separated by a blank line), ` +
     `breaking (true only for a major emergency or disaster). Cover who, what, where, when, why and background in separate short paragraphs, using every relevant fact in the source text.`, 4000);
+  const main = modelFor(cfg, "write"), spare = modelFor(cfg, "filter");
+  try { return await write(main); }
+  catch (e) {
+    // The better model is busy or out of free quota: write with the lighter one instead of publishing nothing.
+    if (!/rate limit|gemini 503|timeout/i.test((e as Error).message)) throw e;
+    console.log(`${main} unavailable, writing with ${spare}`);
+    return write(spare);
+  }
 }
 
 export type Check = { ok: boolean; confidence: number; problems: string[]; sensitive: boolean };

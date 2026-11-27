@@ -158,21 +158,22 @@
   },
   "autoNews": {
     "enabled": true,
-    "autoPublish": false,
+    "autoPublish": true,
     "runEveryHours": 3,
     "activeHoursIST": {
       "from": 6,
       "to": 22
     },
-    "maxStoriesPerRun": 6,
+    "maxStoriesPerRun": 4,
     "maxStoriesPerDay": 30,
-    "maxChecksPerRun": 15,
+    "maxChecksPerRun": 8,
+    "minSourceWords": 80,
     "runBudgetMinutes": 11,
-    "maxAgeHours": 24,
+    "maxAgeHours": 36,
     "relevanceMinScore": 70,
     "confidenceMinScore": 75,
     "wordCount": {
-      "min": 180,
+      "min": 120,
       "max": 320
     },
     "keywords": [

@@ -4,8 +4,8 @@
 //   run     : normal mode; publishes when autoNews.autoPublish is true
 // Without GEMINI_API_KEY or ANTHROPIC_API_KEY the pipeline runs in no-AI mode (pipeline/digest.ts): short briefs
 // with the publisher's own headline and summary, credited and linked.
-import { alert, db, istHour, loadConfig, makeSlug, revalidateSite, baseConfig } from "./lib";
-import { collect, readArticle } from "./collect";
+import { alert, db, istHour, loadConfig, makeSlug, revalidateSite, words, baseConfig } from "./lib";
+import { collect, isGoogle, readArticle } from "./collect";
 import { checkStory, filterItem, localSafety, wordOk, writeStory } from "./ai";
 import { buildBrief, pickBrief } from "./digest";
 import { pickImage } from "./images";
@@ -49,6 +49,15 @@ async function main() {
       // Cost and time limits: unchecked items stay unseen and are picked up by the next run.
       if (useAi && checked >= cfg.maxChecksPerRun) { console.log(`Stopped: ${checked} items checked (maxChecksPerRun).`); break; }
       if (Date.now() - started > cfg.runBudgetMinutes * 60_000) { console.log("Stopped: run time budget used."); break; }
+      // The AI writer needs the publisher's own text. Google News links cannot be opened, and a story
+      // written from a headline alone is always held, so skip both before spending any AI quota.
+      // They are not marked seen: a failed page load is tried again on the next run.
+      let page: Awaited<ReturnType<typeof readArticle>> | undefined;
+      if (useAi) {
+        if (isGoogle(item.link)) continue;
+        page = await readArticle(item.link);
+        if (words(page.text) < cfg.minSourceWords) { console.log(`skip (no readable text): ${item.title}`); continue; }
+      }
       checked++;
       const markSeen = () => supabase.from("seen_items").upsert([item.link, ...item.extra.map((x) => x.link)].map((url) => ({ url, title: item.title })));
       try {
@@ -84,7 +93,7 @@ async function main() {
           console.log(`pick [${rel.score}] ${rel.category}/${rel.area}: ${item.title}`);
           if (mode === "collect") continue;
 
-          const art = await readArticle(item.link);
+          const art = page!;
           sources = [{ name: item.publisher, url: art.url }, ...item.extra.map((x) => ({ name: x.publisher, url: x.link }))];
           const written = await writeStory(cfg, { title: item.title, snippet: item.snippet, text: art.text, sources: sources.map((s) => s.name) });
           // The model gave no usable story: mark it seen so it is not paid for again every 3 hours.
@@ -100,7 +109,6 @@ async function main() {
           }
           const local = localSafety(written); if (local) reasons.push(local);
           if (!wordOk(cfg, written.body)) reasons.push("शब्द सीमा");
-          if (!art.text) reasons.push("स्रोत का पूरा पाठ नहीं मिला");
           confidence = check?.confidence ?? null;
           story = {
             headline: written.headline, summary: written.summary, breaking: written.breaking, writer: baseConfig.site.name,
@@ -135,6 +143,7 @@ async function main() {
         if (publish) published++; else held++;
       } catch (e) {
         errors.push(`${item.title.slice(0, 40)}: ${(e as Error).message}`);
+        if (/free quota/.test((e as Error).message)) { console.log("Stopped: AI quota used up, the next run will continue."); break; }
       }
     }
 
@@ -148,6 +157,8 @@ async function main() {
   if (runId) await supabase.from("pipeline_runs").update({ ended_at: new Date().toISOString(), found, published, held, rejected, errors }).eq("id", runId);
   console.log(`Done: published ${published}, held ${held}, skipped ${rejected}, errors ${errors.length}`);
   if (errors.length) { console.error(errors.join("\n")); }
+  // A run that achieved nothing but errors is marked failed, so GitHub emails the repository owner.
+  if (errors.length && published + held + rejected === 0) process.exitCode = 1;
 }
 
 main().catch(async (e) => { console.error(e); try { await alert((await loadConfig(db())), `पाइपलाइन क्रैश: ${(e as Error).message}`); } catch {} process.exit(1); });
