@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <h2>उपयोग की शर्तें</h2>
         <p>इस वेबसाइट की सामग्री केवल सूचना के लिए है। बिना अनुमति इसकी नकल या पुनः प्रकाशन की अनुमति नहीं है। हम सटीक खबर देने का प्रयास करते हैं; गलती होने पर सुधार किया जाएगा।</p>
         <h2>संपर्क</h2>
-        <p>{config.contact.email} · {config.contact.phone}</p>
+        <p>{[config.contact.email, config.contact.phone].filter(Boolean).join(" · ")}</p>
       </div>
     </main>
   );

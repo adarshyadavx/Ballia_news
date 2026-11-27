@@ -12,7 +12,7 @@ export default function ContactPage() {
     { icon: Mail, label: "ईमेल", value: email, href: `mailto:${email}` },
     { icon: MessageCircle, label: "WhatsApp", value: whatsapp, href: `https://wa.me/${whatsapp.replace(/\D/g, "")}` },
     { icon: MapPin, label: "पता", value: address },
-  ];
+  ].filter((i) => i.value); // a blank value in config.json hides that card
   return (
     <main className="shell shell-narrow rise py-12 lg:py-16">
       <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">संपर्क करें</h1>
