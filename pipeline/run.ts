@@ -59,7 +59,12 @@ async function main() {
         if (words(page.text) < cfg.minSourceWords) { console.log(`skip (no readable text): ${item.title}`); continue; }
       }
       checked++;
-      const markSeen = () => supabase.from("seen_items").upsert([item.link, ...item.extra.map((x) => x.link)].map((url) => ({ url, title: item.title })));
+      const markSeen = async () => {
+        // The same link can arrive from two feeds, and one repeated row makes the whole write fail.
+        const urls = [...new Set([item.link, ...item.extra.map((x) => x.link)])];
+        const { error } = await supabase.from("seen_items").upsert(urls.map((url) => ({ url, title: item.title })));
+        if (error) errors.push(`seen_items: ${error.message}`);
+      };
       try {
         let story: { headline: string; summary: string; html: string; breaking: boolean; writer: string };
         let meta: { category: string; area: string; tags: string[]; keywords: string; photoCategory?: string };

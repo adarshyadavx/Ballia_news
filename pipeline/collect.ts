@@ -50,8 +50,10 @@ export async function collect(supabase: SupabaseClient, cfg: AutoCfg): Promise<{
   // Drop links we already processed.
   const links = all.map((i) => i.link);
   const seen = new Set<string>();
-  for (let i = 0; i < links.length; i += 100) {
-    const { data } = await supabase.from("seen_items").select("url").in("url", links.slice(i, i + 100));
+  for (const batch of batchByLength(links, 6000)) {
+    const { data, error } = await supabase.from("seen_items").select("url").in("url", batch);
+    // Never carry on without this list: every old story would look new and be published again.
+    if (error) throw new Error(`seen_items lookup failed: ${error.message}`);
     (data ?? []).forEach((r) => seen.add(r.url));
   }
   const fresh = all.filter((i) => !seen.has(i.link));
@@ -72,6 +74,19 @@ export async function collect(supabase: SupabaseClient, cfg: AutoCfg): Promise<{
     } else groups.push(it);
   }
   return { items: groups, errors, found };
+}
+
+// The links travel in the request address, which has a size limit, and news links are long.
+function batchByLength(links: string[], maxChars: number): string[][] {
+  const batches: string[][] = [];
+  let size = 0;
+  for (const link of links) {
+    const len = encodeURIComponent(link).length + 3;
+    if (!batches.length || size + len > maxChars) { batches.push([]); size = 0; }
+    batches[batches.length - 1].push(link);
+    size += len;
+  }
+  return batches;
 }
 
 type NewsDataRow = { title?: string; link?: string; description?: string | null; pubDate?: string; source_name?: string; source_id?: string; duplicate?: boolean };
