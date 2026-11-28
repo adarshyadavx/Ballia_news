@@ -134,7 +134,7 @@
       }
     },
     "socialBar": {
-      "enabled": false,
+      "enabled": true,
       "key": "https://bicea.org/14/4f90fb40f9b0684c5a5cf9404381bc28",
       "delaySeconds": 10,
       "orShowAfterScrollPercent": 50
