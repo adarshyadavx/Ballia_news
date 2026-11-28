@@ -140,7 +140,7 @@
       "orShowAfterScrollPercent": 50
     },
     "popunder": {
-      "enabled": false,
+      "enabled": true,
       "key": "https://afders.org/1/0f4db02baba3d9dd59bf7162e5263f18",
       "pages": [
         "all"
