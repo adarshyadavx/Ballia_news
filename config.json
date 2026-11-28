@@ -134,13 +134,13 @@
       }
     },
     "socialBar": {
-      "enabled": true,
+      "enabled": false,
       "key": "https://bicea.org/14/4f90fb40f9b0684c5a5cf9404381bc28",
       "delaySeconds": 10,
       "orShowAfterScrollPercent": 50
     },
     "popunder": {
-      "enabled": true,
+      "enabled": false,
       "key": "https://afders.org/1/0f4db02baba3d9dd59bf7162e5263f18",
       "pages": [
         "all"
@@ -149,7 +149,7 @@
       "skipFirstPageView": true
     },
     "smartlink": {
-      "enabled": true,
+      "enabled": false,
       "url": "https://arwf.org/4/b1c9c23c7dc61e6ac2c28f73091b6c95",
       "text": "Sponsored",
       "showInFooter": true,
