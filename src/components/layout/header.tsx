@@ -15,7 +15,7 @@ export function HeaderView({ categories }: { categories: Cat[] }) {
     <header className="app-bar sticky top-0 z-50 border-b pt-[env(safe-area-inset-top)] bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
       <div className="shell">
         <div className="flex h-14 items-center md:h-16 justify-between gap-4">
-          <Logo tagline size={34} />
+          <Logo tagline size={46} />
           <div className="flex items-center gap-1.5">
             <span className="mr-3 hidden text-sm text-muted-foreground lg:block"><TodayHindi /></span>
             {config.features.search && (

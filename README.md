@@ -36,7 +36,7 @@ Ad keys in `config.json` that still contain `ADSTERRA_` render nothing, so the s
 1. Run `supabase/remove-sample-news.sql`, then publish your first real stories.
    The built-in sample stories (`features.sampleData`) only show while no story is published; set it to `false` to turn them off completely.
    Also run `supabase/migrations/0004_hardening.sql` (contact-form flood limits, view-counter limits, held-story fix).
-2. Put real values in `config.json` (domain `site.url`, phone, email, WhatsApp, GA id) and replace `public/logo.svg`.
+2. Put real values in `config.json` (domain `site.url`, phone, email, WhatsApp, GA id) and replace `public/logo.png` (and the icons in `src/app/`).
 3. Push to GitHub, import the repo on Vercel, add the two env vars from `.env.local`.
 4. Add your domain in Vercel, and set `site.url` to it.
 5. Supabase > Authentication > URL Configuration: set Site URL to your domain.
