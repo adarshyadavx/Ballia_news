@@ -9,6 +9,13 @@ export function absolute(src: string): string {
   return `${siteUrl()}${src.startsWith("/") ? "" : "/"}${src}`;
 }
 
+// WhatsApp, Facebook and X do not show SVG pictures, so a story that only has a drawing (or no
+// picture) is shared with the site's logo (public/share.jpg, a small square copy of the badge).
+function shareImage(src: string | null | undefined) {
+  const own = src && !/\.svg(\?|$)/i.test(src);
+  return { url: absolute(own ? src : "/share.jpg"), isLogo: !own };
+}
+
 export function pageMeta(title: string, description: string, path: string): Metadata {
   return {
     title,
@@ -20,7 +27,7 @@ export function pageMeta(title: string, description: string, path: string): Meta
 
 export function newsMeta(n: NewsItem): Metadata {
   const url = `${siteUrl()}/news/${n.slug}`;
-  const img = absolute(n.main_image || "/default-news.svg");
+  const img = shareImage(n.main_image);
   return {
     title: n.headline,
     description: n.summary,
@@ -28,9 +35,10 @@ export function newsMeta(n: NewsItem): Metadata {
     openGraph: {
       title: n.headline, description: n.summary, url, siteName: config.site.name, locale: "hi_IN",
       type: "article", publishedTime: n.published_at ?? undefined, modifiedTime: n.updated_at,
-      images: [{ url: img, alt: n.headline }],
+      images: [{ url: img.url, alt: n.headline, ...(img.isLogo ? { width: 800, height: 800 } : {}) }],
     },
-    twitter: { card: "summary_large_image", title: n.headline, description: n.summary, images: [img] },
+    // The wide card would cut off the top and bottom of the square logo.
+    twitter: { card: img.isLogo ? "summary" : "summary_large_image", title: n.headline, description: n.summary, images: [img.url] },
   };
 }
 
@@ -40,7 +48,7 @@ export function newsJsonLd(n: NewsItem) {
     "@type": "NewsArticle",
     headline: n.headline,
     description: n.summary,
-    image: [absolute(n.main_image || "/default-news.svg")],
+    image: [shareImage(n.main_image).url],
     datePublished: n.published_at,
     dateModified: n.updated_at,
     author: { "@type": "Person", name: n.writer_name || config.site.name },
